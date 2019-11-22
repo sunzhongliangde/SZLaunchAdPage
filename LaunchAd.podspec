@@ -1,5 +1,5 @@
 Pod::Spec.new do |spec|
-  spec.name         = "LaunchAd"
+  spec.name         = "SZLaunchAdPage"
   spec.version      = "1.0.0"
   spec.summary      = "简单易用的iOS启动页广告"
 

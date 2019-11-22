@@ -9,9 +9,12 @@
 #import "SZLaunchAdPage.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <SDWebImage/UIImage+GIF.h>
+#import <SDWebImage/NSData+ImageContentType.h>
 #import <SDWebImage/UIImage+MultiFormat.h>
+#import "AFNetworking.h"
 
 @interface SZLaunchAdPage ()
+@property (nonatomic, strong) CALayer *backgroundLayer;
 @property (nonatomic, strong) UIImageView *ADImageView;  // 启动图片
 @property (nonatomic, strong) UIButton *skipButton;      // 跳过按钮
 @property (nonatomic, strong) dispatch_source_t timer;   // 设置定时器
@@ -25,6 +28,7 @@
 - (instancetype)init {
     if (self = [super init]) {
         self.ADduration = 3;
+        self.timeoutDuration = 3;
         self.hideSkipButton = YES;
     }
     return self;
@@ -36,32 +40,38 @@
     
     [self.view addSubview:self.ADImageView];
     [self.view addSubview:self.skipButton];
+
+    [self.view.layer insertSublayer:self.backgroundLayer atIndex:0];
 }
 
-- (void)setADImageURL:(NSURL *)ADImageURL {
+- (void)setADImageURL:(NSString *)ADImageURL {
     _ADImageURL = ADImageURL;
     [self downloadImage];
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    if (self.launchAdClickBlock) {
+        self.launchAdClickBlock();
+    }
+    [self removeLaunchAdPageHUD];
 }
 
 #pragma mark - 设置广告图片
 - (UIImageView *)ADImageView {
     if (!_ADImageView) {
         _ADImageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
-        _ADImageView.image = [self launchImage]; // 初始化设置为launch image
         _ADImageView.userInteractionEnabled = YES;
-        _ADImageView.alpha = 1;
-        
-        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(adImageViewTapAction:)];
-        [self.ADImageView addGestureRecognizer:tap];
+        _ADImageView.contentMode = UIViewContentModeScaleAspectFill;
     }
     return _ADImageView;
 }
 
 - (void)downloadImage {
-    if ([[self.ADImageURL.scheme lowercaseString] isEqualToString:@"file"]) {
-        NSData *localData = [NSData dataWithContentsOfURL:self.ADImageURL];
-        // 本地图片
-        if ([[[self.ADImageURL lastPathComponent] lowercaseString] isEqualToString:@"gif"]) {
+    // 本地图片
+    NSURL *URL = [NSURL URLWithString:self.ADImageURL];
+    if ([[URL.scheme lowercaseString] isEqualToString:@"file"]) {
+        NSData *localData = [NSData dataWithContentsOfURL:URL];
+        if ([NSData sd_imageFormatForImageData:localData] == SDImageFormatGIF) {
             UIImage *gifImage = [UIImage sd_imageWithGIFData:localData];
             self.ADImageView.image = gifImage;
         }
@@ -73,24 +83,34 @@
     }
     else {
         __weak typeof(self) weakSelf = self;
-        [self.ADImageView sd_setImageWithURL:self.ADImageURL placeholderImage:[self launchImage] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-            if (error) {
-                [weakSelf removeLaunchAdPageHUD];
-                #if DEBUG
-                                NSLog(@"------------启动页广告图片下载失败，图片URL%@------%@",imageURL, error);
-                #endif
-                return;
-            }
-            // 开启倒计时
-            [weakSelf dispath_timer];
-        }];
-    }
-}
+        
+        NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+        configuration.timeoutIntervalForRequest = self.timeoutDuration;
+        configuration.HTTPShouldSetCookies = NO;
+        configuration.requestCachePolicy = NSURLRequestReturnCacheDataElseLoad;
+        
+        AFHTTPSessionManager *sessionManager = [[AFHTTPSessionManager alloc] initWithSessionConfiguration:configuration];
+        sessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObject:@"image/jpeg"];
+        sessionManager.responseSerializer = [AFImageResponseSerializer serializer];
+        [sessionManager GET:self.ADImageURL parameters:nil progress:^(NSProgress * _Nonnull downloadProgress) {
             
-
-- (void)adImageViewTapAction:(UITapGestureRecognizer *)tap {
-    if (self.launchAdClickBlock) {
-        self.launchAdClickBlock();
+        } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            __strong SZLaunchAdPage *strongSelf = weakSelf;
+            UIImage *image = (UIImage *)responseObject;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [strongSelf.backgroundLayer removeFromSuperlayer];
+                strongSelf.backgroundLayer = nil;
+                strongSelf.ADImageView.image = image;
+                [strongSelf dispath_timer];
+            });
+            
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            __strong SZLaunchAdPage *strongSelf = weakSelf;
+            if (strongSelf.launchAdLoadError) {
+                strongSelf.launchAdLoadError(error);
+            }
+            [strongSelf removeLaunchAdPageHUD];
+        }];
     }
 }
 
@@ -111,7 +131,7 @@
         [_skipButton setHidden:self.hideSkipButton];
         [self.skipButton setTitle:[NSString stringWithFormat:@"%lds 跳过", (long)self.ADduration] forState:UIControlStateNormal];
         [_skipButton.titleLabel setFont:[UIFont systemFontOfSize:PixToPoint(38)]];
-        [_skipButton setTitleColor:[UIColor colorWithRed:143.0/255 green:58.0/255 blue:132.0/255 alpha:1]
+        [_skipButton setTitleColor:[UIColor whiteColor]
                           forState:UIControlStateNormal];
         [_skipButton addTarget:self action:@selector(skipButtonClick) forControlEvents:UIControlEventTouchUpInside];
     }
@@ -120,16 +140,17 @@
 
 - (void)skipButtonClick {
     [self removeLaunchAdPageHUD];
+    if (self.skipButtonClickBlock) {
+        self.skipButtonClickBlock();
+    }
 }
 
 - (void)removeLaunchAdPageHUD {
-    [UIView animateWithDuration:0.2 animations:^{
-        //[UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
-        //self.transform = CGAffineTransformMakeScale(1.5, 1.5);
+    [UIView animateWithDuration:0.25 animations:^{
         self.view.alpha = 0.0;
     } completion:^(BOOL finished) {
-        if (self.skipButtonClickBlock) {
-            self.skipButtonClickBlock();
+        if (self.launchAdClosed) {
+            self.launchAdClosed();
         }
     }];
 }
@@ -161,8 +182,35 @@
     dispatch_resume(self.timer);
 }
 
+- (CALayer *)backgroundLayer {
+    if (!_backgroundLayer) {
+        UIView *launchView = [self getLaunchView];
+        if (launchView) {
+            return launchView.layer;
+        }
+        else {
+            _backgroundLayer = [[CALayer alloc] init];
+            UIImage *image = [self getLaunchImage];
+            _backgroundLayer.contents = (__bridge id)image.CGImage;
+        }
+    }
+    return _backgroundLayer;
+}
+
 #pragma mark - 获取系统LaunchImage图片
-- (UIImage *)launchImage {
+
+- (UIView *)getLaunchView {
+    NSDictionary *infoPlist = [[NSBundle mainBundle] infoDictionary];
+    NSString *storyboardName = [infoPlist objectForKey:@"UILaunchStoryboardName"];
+    if (storyboardName.length > 0) {
+        UIViewController *viewController = [UIStoryboard storyboardWithName:storyboardName bundle:nil].instantiateInitialViewController;
+        return viewController.view;
+    }
+    
+    return nil;
+}
+
+- (UIImage *)getLaunchImage {
     CGSize viewSize = [UIScreen mainScreen].bounds.size;
     
     NSString *viewOrientation = nil;
@@ -181,6 +229,7 @@
         if (CGSizeEqualToSize(imageSize, viewSize) && [viewOrientation isEqualToString:dict[@"UILaunchImageOrientation"]])
         {
             launchImage = dict[@"UILaunchImageName"];
+            break;
         }
     }
     return [UIImage imageNamed:launchImage];
@@ -200,11 +249,6 @@
     
     return iphoneX;
 }
-
-- (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
 
 
 @end

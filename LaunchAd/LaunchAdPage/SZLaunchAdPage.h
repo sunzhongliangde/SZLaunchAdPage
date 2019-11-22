@@ -18,9 +18,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) NSInteger ADduration;
 
 /**
+ 广告加载超时时间（默认3秒钟）
+ */
+@property (nonatomic, assign) NSInteger timeoutDuration;
+
+/**
  广告图片URL
  */
-@property (nonatomic, copy) NSURL *ADImageURL;
+@property (nonatomic, copy) NSString *ADImageURL;
 
 /**
  是否隐藏跳过按钮
@@ -36,6 +41,14 @@ NS_ASSUME_NONNULL_BEGIN
  跳过按钮点击事件回调
  */
 @property (nonatomic, copy) void(^skipButtonClickBlock)(void);
+
+/**
+ 广告关闭回调
+ */
+@property (nonatomic, copy) void(^launchAdClosed)(void);
+
+/// 广告加载失败
+@property (nonatomic, copy) void(^launchAdLoadError)(NSError *error);
 
 
 @end

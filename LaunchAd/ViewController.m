@@ -17,7 +17,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor darkGrayColor];
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+    UILabel *text = [[UILabel alloc] init];
+    text.frame = CGRectMake(100, 100, 190, 100);
+    text.text = @"这是主界面";
+    [self.view addSubview:text];
 }
 
 

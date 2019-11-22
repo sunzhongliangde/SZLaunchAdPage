@@ -8,9 +8,13 @@
 
 #import "AppDelegate.h"
 #import "ViewController.h"
+#import "AFNetworking.h"
+#import "SZLaunchAdPage.h"
 
 @interface AppDelegate ()
-
+{
+    SZLaunchAdPage *_launchAd;
+}
 @end
 
 @implementation AppDelegate
@@ -24,13 +28,31 @@
     
     ViewController *vc = [[ViewController alloc] init];
     self.window.rootViewController = vc;
-    
     [self.window makeKeyAndVisible];
+    
+    [self loadLaunchAd];
     
     return YES;
 }
 
 
+- (void)loadLaunchAd {
+    _launchAd = [[SZLaunchAdPage alloc] init];
+    _launchAd.ADduration = 5;
+    _launchAd.timeoutDuration = 3;
+    _launchAd.ADImageURL = @"https://c-ssl.duitang.com/uploads/item/201805/11/20180511135645_VHNGu.thumb.700_0.jpeg";
+    _launchAd.skipButtonClickBlock = ^{
+        NSLog(@"点击了跳过");
+    };
+    _launchAd.skipButtonClickBlock = ^{
+        NSLog(@"点击了广告位");
+    };
+    _launchAd.launchAdClickBlock = ^{
+        NSLog(@"点击了广告");
+    };
+    [self.window addSubview:_launchAd.view];
+    
+}
 
 
 @end
