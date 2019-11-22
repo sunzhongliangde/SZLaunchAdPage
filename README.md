@@ -24,11 +24,14 @@ _launchAd.ADImageURL = @"https://c-ssl.duitang.com/uploads/item/201805/11/201805
 _launchAd.skipButtonClickBlock = ^{
     NSLog(@"点击了跳过");
 };
-_launchAd.skipButtonClickBlock = ^{
-    NSLog(@"点击了广告位");
+_launchAd.launchAdClosed = ^{
+    NSLog(@"广告已关闭");
 };
 _launchAd.launchAdClickBlock = ^{
     NSLog(@"点击了广告");
+};
+_launchAd.launchAdLoadError = ^(NSError * _Nonnull error) {
+    NSLog(@"广告加载失败 - %@", error);
 };
 [self.window addSubview:_launchAd.view];
 ```
@@ -42,11 +45,14 @@ _launchAd.ADImageURL = @"https://c-ssl.duitang.com/uploads/item/201805/11/201805
 _launchAd.skipButtonClickBlock = ^{
     NSLog(@"点击了跳过");
 };
-_launchAd.skipButtonClickBlock = ^{
-    NSLog(@"点击了广告位");
+_launchAd.launchAdClosed = ^{
+    NSLog(@"广告已关闭");
 };
 _launchAd.launchAdClickBlock = ^{
     NSLog(@"点击了广告");
+};
+_launchAd.launchAdLoadError = ^(NSError * _Nonnull error) {
+    NSLog(@"广告加载失败 - %@", error);
 };
 self.window.rootViewController = _launchAd;
 ```
