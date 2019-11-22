@@ -8,12 +8,12 @@ Pod::Spec.new do |spec|
   spec.author             = { "sunzhongliang" => "sunzhong_liang@163.com" }
   spec.social_media_url   = "https://sunzhongliangde.github.io"
 
+  spec.platform     = :ios
   spec.platform     = :ios, "8.0"
   spec.source       = { :git => "https://github.com/sunzhongliangde/SZLaunchAdPage.git", :tag => "#{spec.version}" }
 
-  spec.source_files  = "LaunchAdPage/*.{h,m}"
+  spec.source_files  = "LaunchAd/LaunchAdPage/*.{h,m}"
   spec.requires_arc  = true
-  spec.dependency "SDWebImage"
-  # spec.dependency "JSONKit", "~> 1.4"
+  spec.dependency 'SDWebImage', '>= 5.0.0'
 
 end

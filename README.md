@@ -1,6 +1,7 @@
 # SZLaunchAdPage
 一款简单易用的iOS启动页广告
 
+-   支持pods引入
 -   支持预加载图片
 -   支持作为UIWindow根视图使用
 -   支持在UIWindow上添加使用

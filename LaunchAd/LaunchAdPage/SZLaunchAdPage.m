@@ -11,7 +11,6 @@
 #import <SDWebImage/UIImage+GIF.h>
 #import <SDWebImage/NSData+ImageContentType.h>
 #import <SDWebImage/UIImage+MultiFormat.h>
-#import "AFNetworking.h"
 
 @interface SZLaunchAdPage ()
 @property (nonatomic, strong) CALayer *backgroundLayer;
@@ -89,28 +88,26 @@
         configuration.HTTPShouldSetCookies = NO;
         configuration.requestCachePolicy = NSURLRequestReturnCacheDataElseLoad;
         
-        AFHTTPSessionManager *sessionManager = [[AFHTTPSessionManager alloc] initWithSessionConfiguration:configuration];
-        sessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObject:@"image/jpeg"];
-        sessionManager.responseSerializer = [AFImageResponseSerializer serializer];
-        [sessionManager GET:self.ADImageURL parameters:nil progress:^(NSProgress * _Nonnull downloadProgress) {
-            
-        } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
+        NSURLSessionDataTask *dataTask = [session dataTaskWithURL:[NSURL URLWithString:self.ADImageURL] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
             __strong SZLaunchAdPage *strongSelf = weakSelf;
-            UIImage *image = (UIImage *)responseObject;
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [strongSelf.backgroundLayer removeFromSuperlayer];
-                strongSelf.backgroundLayer = nil;
-                strongSelf.ADImageView.image = image;
-                [strongSelf dispath_timer];
-            });
-            
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            __strong SZLaunchAdPage *strongSelf = weakSelf;
-            if (strongSelf.launchAdLoadError) {
-                strongSelf.launchAdLoadError(error);
+            if (error) {
+                if (strongSelf.launchAdLoadError) {
+                    strongSelf.launchAdLoadError(error);
+                }
+                [strongSelf removeLaunchAdPageHUD];
             }
-            [strongSelf removeLaunchAdPageHUD];
+            else {
+                UIImage *image = [UIImage imageWithData:data];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [strongSelf.backgroundLayer removeFromSuperlayer];
+                    strongSelf.backgroundLayer = nil;
+                    strongSelf.ADImageView.image = image;
+                    [strongSelf dispath_timer];
+                });
+            }
         }];
+        [dataTask resume];
     }
 }
 
