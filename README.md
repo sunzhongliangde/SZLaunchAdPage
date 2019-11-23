@@ -3,6 +3,7 @@
 
 -   支持pods引入
 -   支持预加载图片
+-   广告图加载placeholder支持LaunchScreen.storyboard和Assets.xcassets
 -   支持作为UIWindow根视图使用
 -   支持在UIWindow上添加使用
 
