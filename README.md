@@ -16,6 +16,46 @@
 ## Overview
 <img src="https://github.com/sunzhongliangde/SZLaunchAdPage/blob/master/effects.gif" referrerpolicy="no-referrer">
 
+```objc
+/**
+ 广告持续显示时间（默认3秒钟）
+ */
+@property (nonatomic, assign) NSInteger ADduration;
+
+/**
+ 广告加载超时时间（默认3秒钟）
+ */
+@property (nonatomic, assign) NSInteger timeoutDuration;
+
+/**
+ 广告图片URL
+ */
+@property (nonatomic, copy) NSString *ADImageURL;
+
+/**
+ 是否隐藏跳过按钮
+ */
+@property (nonatomic, assign) BOOL hideSkipButton;
+
+/**
+ 广告点击事件回调
+ */
+@property (nonatomic, copy) void(^launchAdClickBlock)(void);
+
+/**
+ 跳过按钮点击事件回调
+ */
+@property (nonatomic, copy) void(^skipButtonClickBlock)(void);
+
+/**
+ 广告关闭回调
+ */
+@property (nonatomic, copy) void(^launchAdClosed)(void);
+
+/// 广告加载失败
+@property (nonatomic, copy) void(^launchAdLoadError)(NSError *error);
+```
+
 #### 支持预加载
 可以把广告信息缓存在本地，同时把图片缓存到本地，下次启动时直接使用图片缓存，省去加载图片的时间，使APP启动广告展示更快
 ```objc
