@@ -4,7 +4,7 @@ Pod::Spec.new do |spec|
   spec.summary      = "简单易用的iOS启动页广告"
 
   spec.homepage     = "https://github.com/sunzhongliangde/SZLaunchAdPage"
-  spec.license      = { :type => "MIT", :file => "FILE_LICENSE" }
+  spec.license      = { :type => "MIT", :file => "LICENSE" }
   spec.author             = { "sunzhongliang" => "sunzhong_liang@163.com" }
   spec.social_media_url   = "https://sunzhongliangde.github.io"
 
