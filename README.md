@@ -1,4 +1,10 @@
 # SZLaunchAdPage
+
+[![CI Status](https://img.shields.io/travis/sunzhongliang/SZLaunchAdPage.svg?style=flat)](https://travis-ci.org/sunzhongliang/SZLaunchAdPage)
+[![Version](https://img.shields.io/cocoapods/v/SZLaunchAdPage.svg?style=flat)](https://cocoapods.org/pods/SZLaunchAdPage)
+[![License](https://img.shields.io/cocoapods/l/SZLaunchAdPage.svg?style=flat)](https://cocoapods.org/pods/SZLaunchAdPage)
+[![Platform](https://img.shields.io/cocoapods/p/SZLaunchAdPage.svg?style=flat)](https://cocoapods.org/pods/SZLaunchAdPage)
+
 一款简单易用的iOS启动页广告
 
 -   支持pods引入
